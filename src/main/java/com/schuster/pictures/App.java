@@ -162,6 +162,9 @@ public class App
 		options.addOption("f", "sourceDrive", true, "Source Drive if windows machine");
 		options.addOption("g", "destinationDrive", true, "Destination Drive if windows machine");
 		options.addOption("l", "link", true, "Link files after copying");
+		options.addOption("p", "photos", false, "Backup photos");
+		options.addOption("m", "movies", false, "Backup movies");
+		options.addOption("d", "documents", false, "Backup documents");
 		CommandLineParser parser = new BasicParser();
         CommandLine cmd = null;
         try {
@@ -178,6 +181,7 @@ public class App
 					System.exit(0);
 				}
 			}
+			
 			if (cmd.hasOption("g")) {
 				this.targetDrive = cmd.getOptionValue("g");
 				if (!new File(this.targetDrive).canRead()) {
@@ -186,6 +190,7 @@ public class App
 					System.exit(0);
 				}
 			}
+			/*
 			if (cmd.hasOption("s")) {
 				   File myFile = new File(cmd.getOptionValue("s"));
 				   if (myFile.canRead()) {
@@ -197,6 +202,7 @@ public class App
 					   help(options);
 				   }
 			} 
+			*/
 			
 			if (cmd.hasOption("l")) {
 				this.linkSourceDirectory = cmd.getOptionValue("l");
@@ -211,6 +217,7 @@ public class App
 				this.quiet = true;
 			}	
 			
+			/*
 			if (cmd.hasOption("t")) {
 				
 				File tFile = new File(this.targetDrive + System.getProperty("file.separator") + cmd.getOptionValue("t"));
@@ -222,6 +229,18 @@ public class App
 					help(options);
 				}
 			}
+			*/
+			
+			if (cmd.hasOption("p")) {
+				this. copyPhotos = true;
+			}
+			
+			if (cmd.hasOption("m")) {
+				this. copyMovies = true;
+			}
+			if (cmd.hasOption("d")) {
+				this. copyDocuments = true;
+			}
 			
 			
 			if (cmd.hasOption("b")) {
@@ -230,8 +249,34 @@ public class App
 					log.info("Photo backup starting");
 					this.backupType = "photo";
 					BackupMain bm = new BackupMain();
+					
+					String sourceDirectory;
+					if (this.sourceBaseDirectory == null ) {
+						sourceDirectory = this.sourceDrive + System.getProperty("file.separator");
+					} else {
+						sourceDirectory = this.sourceDrive + System.getProperty("file.separator") + this.sourceBaseDirectory;
+					}
+					log.info("Setting source to " + sourceDirectory);
+					bm.setSource(sourceDirectory);
+					
+					// Build the exclude hash for source directories to not check
+					if (sourceExcludeFile != null) {
+						// if the sourceExclude file doesn't start with a slash then add the source directory to the front of it
+						if (!sourceExcludeFile.startsWith("/")) {
+							String newExcludeFile = "/" + this.sourceDrive + this.sourceExcludeFile;
+							this.sourceExcludeFile = newExcludeFile;
+						}
+						File sourceExclude = new File(this.sourceExcludeFile);
+						if (sourceExclude.canRead()) {
+							bm.setExcludedFile(sourceExcludeFile);
+							bm.buildExcludeHash();
+						}
+					}
+					
 					if (this.quiet) {
 						log.info("Setting quiet to true");
+						
+						
 						bm.setPhoto();
 						bm.setMovie();
 						bm.setDoc();
@@ -253,14 +298,7 @@ public class App
 						if (this.copyMovies) bm.setMovie();
 						if (this.copyDocuments) bm.setDoc();
 					}
-					String sourceDirectory;
-					if (this.sourceBaseDirectory == null ) {
-						sourceDirectory = this.sourceDrive + System.getProperty("file.separator");
-					} else {
-						sourceDirectory = this.sourceDrive + System.getProperty("file.separator") + this.sourceBaseDirectory;
-					}
-					log.info("Setting source to " + sourceDirectory);
-					bm.setSource(sourceDirectory);
+					
 					
 					String td;
 					if (this.targetDirectory == null) {

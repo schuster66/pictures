@@ -116,6 +116,7 @@ public class BackupMain {
 					String fileName = sourceDirectory + System.getProperty("file.separator") + line;
 					this.excludedDirs.add(new File(fileName).toPath());
 					log.info("Excluding directory " + fileName);
+					log.info("Source Directory = " + sourceDirectory);
 				}
 			}
 		 
@@ -128,6 +129,7 @@ public class BackupMain {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+		//System.exit(0);
 	}
 	
 	public void startBackup() {
@@ -153,7 +155,11 @@ public class BackupMain {
 				if (checkFile.isDirectory()) {
 					Path newPath = checkFile.toPath();
 					for (Path p : this.excludedDirs ) {
+						//log.info(p.toString() + " " + newPath.toString());
+						//System.exit(0);
 						if (newPath.startsWith(p)) {
+							log.info("Excluded " + p.toString());
+							//System.exit(0);
 							excludedCount++;
 							continue myLabel;
 						}
@@ -170,9 +176,9 @@ public class BackupMain {
 						if (copyPics) {
 							String[] yearMonth = getYearMonth(checkFile);
 							String targetDirString = this.pictureBaseDirectory  + System.getProperty("file.separator") + yearMonth[0];
-							createDirectory(targetDirString);
-							targetDirString = targetDirString + System.getProperty("file.separator") + yearMonth[1];
 							File targetDir = createDirectory(targetDirString);
+							targetDirString = targetDirString + System.getProperty("file.separator") + yearMonth[1];
+							targetDir = createDirectory(targetDirString);
 							if (copyFile(checkFile, targetDir)) picsCopiedCount++; else picsSkippedCount++;	
 						} else {
 							picsSkippedCount++;
